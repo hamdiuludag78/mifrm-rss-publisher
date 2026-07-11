@@ -1,0 +1,176 @@
+:root{
+color-scheme:dark;
+--bg:#06110b;
+--card:#0d2115;
+--border:#28583b;
+--text:#effbf3;
+--muted:#9eb8a7;
+--green:#18a957;
+--danger:#b83b3b;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+min-height:100vh;
+background:linear-gradient(180deg,#0a2817,var(--bg));
+color:var(--text);
+font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+
+.container{
+width:min(calc(100% - 24px),1000px);
+margin:20px auto 60px;
+}
+
+.card{
+background:var(--card);
+border:1px solid var(--border);
+border-radius:16px;
+padding:18px;
+margin-bottom:18px;
+}
+
+.auth-card{
+max-width:450px;
+margin:10vh auto;
+}
+
+h1,h2,h3{margin-top:0}
+
+form{
+display:grid;
+gap:15px;
+}
+
+label{
+display:grid;
+gap:7px;
+color:var(--muted);
+}
+
+input,select,button{
+width:100%;
+min-height:48px;
+padding:11px 13px;
+font:inherit;
+border-radius:10px;
+}
+
+input,select{
+background:#07170e;
+color:var(--text);
+border:1px solid #397750;
+}
+
+button{
+border:0;
+background:var(--green);
+color:white;
+font-weight:700;
+cursor:pointer;
+}
+
+button:disabled{
+opacity:.5;
+}
+
+.secondary{
+background:#244c35;
+}
+
+.danger{
+background:var(--danger);
+}
+
+.small{
+width:auto;
+min-height:40px;
+}
+
+.topbar,.head,.feed-head{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+}
+
+.topbar button{
+width:auto;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:12px;
+margin-bottom:18px;
+}
+
+.stats article{
+background:#10291a;
+border:1px solid var(--border);
+padding:16px;
+border-radius:14px;
+}
+
+.stats span{
+display:block;
+color:var(--muted);
+}
+
+.stats strong{
+font-size:1.7rem;
+}
+
+.feed{
+border:1px solid var(--border);
+border-radius:12px;
+padding:15px;
+margin-top:12px;
+background:#07170e;
+}
+
+.feed-url{
+overflow-wrap:anywhere;
+color:var(--muted);
+font-size:.85rem;
+}
+
+.actions{
+display:flex;
+gap:10px;
+}
+
+.history{
+padding:12px 0;
+border-bottom:1px solid var(--border);
+}
+
+.history a{
+color:#73e59d;
+}
+
+.muted{color:var(--muted)}
+.message{min-height:20px;color:#7fe4a3}
+.error{color:#ff9999}
+
+@media(max-width:650px){
+.grid,.stats{
+grid-template-columns:1fr;
+}
+
+.actions{
+flex-direction:column;
+}
+
+.card{
+padding:14px;
+}
+}

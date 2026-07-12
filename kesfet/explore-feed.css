@@ -1,0 +1,88 @@
+#sidebar,.blog-pager,.comments,.post-footer,.post-meta,.sidebar,footer{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
+body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+
+/* Kaydırma konteyneri: 100vh yerine 100dvh — mobil Safari/Chrome'da adres
+   çubuğu açılıp kapanınca video boyu zıplamasın, ekrana TAM otursun.
+
+   ÖNEMLİ: Önceki sürümde "header yüksekliğini otomatik ölç" mantığı
+   vardı; ama bu sayfada widget'tan önce sadece site navbar'ı değil,
+   arama kutusu + breadcrumb + konu başlık kartı da DOM'da yer alıyor.
+   Ölçüm bunların hepsini "header" sanıp videoyu aşağı ittiriyor, o
+   içerik ortaya çıkıyor ve video küçücük/üst üste binmiş görünüyordu.
+   Çözüm: TikTok/Instagram'daki gibi GERÇEK tam ekran — widget artık
+   top:0'dan başlıyor ve z-index'i mümkün olan en yükseğe çekilerek
+   navbar dahil sayfadaki HER ŞEYİN üstünü kaplıyor; altında hiçbir
+   şey görünmüyor, header yüksekliği tahmin etmeye hiç gerek kalmıyor. */
+#explore-feed{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;overflow-y:scroll;overflow-x:hidden;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-y:contain;touch-action:pan-y;z-index:2147483000;background:#000}
+#explore-feed::-webkit-scrollbar{display:none}
+
+.ef-item{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;scroll-snap-align:start;background:#000;contain:layout style paint;content-visibility:auto;contain-intrinsic-size:auto 100vh}
+
+/* Bulanık arkaplan: sadece geniş ekranlarda (PC/tablet) görünür.
+   TikTok/Instagram masaüstünde videoyu tüm genişliğe GERMEZ; telefon
+   oranında ortalar ve yanları aynı görselin bulanık haliyle doldurur. */
+.ef-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(35px) brightness(.45) saturate(1.3);transform:scale(1.15);z-index:0;display:none;background-color:#000}
+
+/* Stage: gerçek video/görselin oturduğu alan. Mobilde tam ekran genişliği,
+   masaüstünde telefon oranında (max 460px) ortalanmış "kart". */
+.ef-stage{position:relative;width:100%;height:100%;overflow:hidden;z-index:1;background:#111}
+.ef-stage::after{content:'';position:absolute;inset:0;background:linear-gradient( to top,rgba(0,0,0,.92) 0%,rgba(0,0,0,.55) 30%,rgba(0,0,0,.1) 60%,transparent 100% );z-index:2;pointer-events:none}
+.ef-item:not(.ef-loaded) .ef-stage::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#111 25%,#1e1e1e 50%,#111 75%);background-size:400% 100%;animation:skeleton 1.3s linear infinite;z-index:1}
+@keyframes skeleton{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+.ef-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1;opacity:0;transition:opacity .4s ease;background:#111;transform:translateZ(0)}
+.ef-item.ef-loaded .ef-media{opacity:1}
+.ef-item.ef-loaded .ef-media[data-type="image"]{animation:kenburns 14s ease-in-out forwards}
+@keyframes kenburns{0%{transform:translateZ(0) scale(1)}100%{transform:translateZ(0) scale(1.07)}}
+
+/* Başlık + avatar + tarih grubu: 5 sn sonra otomatik solar, ekrana
+   dokununca tekrar belirir (aynı TikTok/Instagram gibi). */
+.ef-caption{transition:opacity .25s ease,transform .25s ease}
+.ef-item.ef-ui-hidden .ef-caption{opacity:0;transform:translateY(8px);pointer-events:none}
+
+.ef-meta{position:absolute;top:20px;left:16px;display:flex;align-items:center;gap:10px;z-index:10;pointer-events:none}
+.ef-avatar{display:block;width:46px !important;height:46px !important;min-width:46px;min-height:46px;max-width:46px;max-height:46px;border-radius:50% !important;object-fit:cover;border:2.5px solid rgba(255,255,255,.85);background:#333;box-shadow:0 2px 14px rgba(0,0,0,.6);flex-shrink:0;overflow:hidden}
+.ef-avatar-fallback{display:flex;align-items:center;justify-content:center;width:46px !important;height:46px !important;min-width:46px;min-height:46px;max-width:46px;max-height:46px;border-radius:50% !important;border:2.5px solid rgba(255,255,255,.85);background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;font-size:18px;font-weight:700;box-shadow:0 2px 14px rgba(0,0,0,.6);flex-shrink:0;overflow:hidden}
+.ef-meta-text{display:flex;flex-direction:column;gap:3px}
+.ef-post-date{font-size:13px;font-weight:600;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.95);white-space:nowrap;letter-spacing:.15px}
+.ef-author{font-size:11px;font-weight:400;color:rgba(255,255,255,.7);text-shadow:0 1px 4px rgba(0,0,0,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+
+.ef-card{position:absolute;left:16px;right:16px;bottom:clamp(60px,10vh,130px);padding:16px 18px 18px;color:#fff;text-decoration:none;border-radius:20px;background:rgba(0,0,0,.38);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 36px rgba(0,0,0,.45);z-index:10;display:flex;flex-direction:column;gap:7px;transition:transform .18s ease,box-shadow .18s ease}
+.ef-card:hover{transform:translateY(-3px);box-shadow:0 14px 44px rgba(0,0,0,.55)}
+.ef-card-date{font-size:11px;font-weight:600;color:rgba(255,255,255,.52);letter-spacing:.5px;text-transform:uppercase}
+.ef-title{margin:0;font-size:18px;font-weight:700;line-height:1.45;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.85);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;letter-spacing:.1px}
+
+/* Görünmez dokunma katmanı: YouTube/Blogger video gibi <iframe> içerikleri
+   ayrı bir belge olduğu için üzerlerine yapılan tıklamalar tarayıcıda ana
+   sayfaya HİÇ iletilmeyebiliyor (cross-origin iframe sınırlaması). Bu yüzden
+   medyanın üstüne, kart/oynat ikonunun ALTINDA, şeffaf bir katman konuyor;
+   tüm dokunmalar önce bu katmana düşüyor ve güvenilir şekilde yakalanıyor. */
+.ef-tap-layer{position:absolute;inset:0;z-index:5;background:transparent}
+
+.ef-play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:9;background:rgba(0,0,0,.15);cursor:pointer;opacity:0;transition:opacity .2s ease}
+.ef-play-overlay.ef-show{opacity:1}
+.ef-play-overlay svg{width:64px;height:64px;filter:drop-shadow(0 2px 10px rgba(0,0,0,.6))}
+.ef-state{display:flex;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center;color:#fff;font-size:17px;line-height:1.6}
+
+@media(max-width:768px){
+  .ef-card{left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);padding:14px 16px 16px;border-radius:18px}
+  .ef-title{font-size:16px}
+}
+
+/* ≥701px: PC / tablet / iPad — TikTok & Instagram masaüstü düzeni.
+   Video tüm pencere genişliğine GERİLMEZ; telefon oranında ortalanır,
+   yanlar aynı karenin bulanık kopyasıyla doldurulur; her yönden "tam
+   ekrana oturmuş" bir video kartı hissi verir. */
+/* ≥701px VE gerçek fare/hover desteği olan ekranlar — yani GERÇEK
+   masaüstü/PC. "pointer:fine + hover:hover" şartı kasıtlı eklendi:
+   Chrome/Brave'in mobilde "Masaüstü Sitesi" modu sadece görünüm
+   genişliğini geniş gösterir, dokunmatik ekran donanımını değiştirmez.
+   Bu yüzden telefonlar (o mod açık olsa bile) bu bloğa hiç girmez —
+   önceki sürümde telefonlarda video küçük bir kutuda ortalanmış gibi
+   görünme sorunu buradan kaynaklanıyordu. */
+@media(min-width:701px) and (pointer:fine) and (hover:hover){
+  .ef-item{display:flex;align-items:center;justify-content:center}
+  .ef-backdrop{display:block}
+  .ef-stage{max-width:460px;height:92%;border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.65);z-index:1}
+}

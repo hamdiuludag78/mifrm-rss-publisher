@@ -1,3 +1,12 @@
+/* ==========================================================================
+   explore-feed.css — v8 (virtualization.js/player.js ile birlikte)
+   --------------------------------------------------------------------------
+   Bu sürümde: .ef-media artık HTML'de sabit değil, virtualization.js
+   tarafından bir havuzdan alınıp .ef-stage içine EKLENEN/ÇIKARILAN bir
+   <video>/<iframe>. Bu yüzden .ef-stage'e her zaman relative+overflow:hidden
+   kalması ve .ef-media'nın absolute+inset:0 olması KRİTİK — eleman hangi
+   sırada eklenirse eklensin doğru şekilde kaplasın.
+   ========================================================================== */
 #sidebar,.blog-pager,.comments,.post-footer,.post-meta,.sidebar,footer{display:none!important}
 *,*::before,*::after{box-sizing:border-box}
 body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}

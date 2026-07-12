@@ -1,1 +1,19 @@
 <div id="explore-feed"></div>
+
+<!--
+  Modül yükleme sırası ÖNEMLİDİR — her dosya window.EF üzerine ekleme
+  yapar ve bir öncekine bağımlıdır:
+    utils → cache → parser → player → observer → virtualization → explore-feed
+
+  Bu dosyaları Blogger'da barındırmak için (jsDelivr + GitHub gibi) bir
+  CDN'e yükleyip src değerlerini kendi barındırma adreslerinizle
+  değiştirin. "defer" sayesinde HTML ayrıştırması bloklanmaz ve script'ler
+  DOM hazır olduktan sonra, yazıldıkları sırayla çalışır.
+-->
+<script src="./utils.js" defer></script>
+<script src="./cache.js" defer></script>
+<script src="./parser.js" defer></script>
+<script src="./player.js" defer></script>
+<script src="./observer.js" defer></script>
+<script src="./virtualization.js" defer></script>
+<script src="./explore-feed.js" defer></script>

@@ -96,6 +96,31 @@
       sorununu hem de önceki "header 2 satıra sarınca video üst üste
       biniyor" sorununu kökten çözüyor; çünkü artık kaplanacak bir
       "header yüksekliği" hesaplamaya gerek yok.
+   -------------------- v6 EKLERİ (bu güncelleme) ---------------------------
+   15) TikTok / Facebook / Instagram DESTEĞİ: extractMedia() artık bu üç
+      platformun da yaygın embed biçimlerini (blockquote+script veya hazır
+      iframe) tanıyor ve video sayıyor.
+      - TikTok: resmi Embed Player (tiktok.com/player/v1/ID) kullanılıyor,
+        bu oynatıcı YouTube'a benzer postMessage API'si sunduğu için ses
+        aç/kapa ve oynat/duraklat TAM olarak kontrol edilebiliyor.
+      - Facebook ve Instagram: hiçbir resmi dış-kontrol (postMessage) API'si
+        YOK. Bu yüzden bu iki türde .ef-tap-layer (dokunma katmanı) hiç
+        eklenmiyor — kullanıcı, oynatıcının kendi ses/oynat düğmesine
+        (varsa) doğrudan dokunabilsin diye. Başlık kartı yine de öğe
+        ekrana gelince otomatik 5 saniyeliğine görünüyor (activeObserver).
+   -------------------- v7 EKLERİ (bu güncelleme) ---------------------------
+   16) VIMEO / DAILYMOTION / TWITTER-X DESTEĞİ:
+      - Vimeo: resmi postMessage API'si var, ses/oynatma TAM kontrol
+        edilebiliyor (TikTok/YouTube ile aynı seviyede — vimeoCommand).
+      - Dailymotion: postMessage komut biçimi güvenilir belgelenmediğinden,
+        ses kontrolü iframe URL'indeki "mute" parametresini değiştirip
+        iframe'i YENİDEN yükleyerek yapılıyor (reloadDailymotionMute) —
+        videoyu baştan başlatma bedeli var ama her zaman çalışıyor.
+      - Twitter/X: Facebook/Instagram ile aynı kısıt — dış kontrol API'si
+        yok, dokunma katmanı eklenmiyor (skipTapLayer), kendi (varsa)
+        oynatıcı düğmesine dokunulabiliyor. Ayrıca not: regex bir tweetin
+        video içerip içermediğini kesin ayırt edemiyor; video içermeyen
+        bir tweet gömülürse nadiren "video konusu" sayılabilir.
    ========================================================================== */
 
 const $   = id => document.getElementById(id);
@@ -137,7 +162,64 @@ const extractMedia = html => {
           || html.match(/(?:src|data-src)=["']([^"']*blogspot\.com\/video\.g[^"']*)["']/i);
   if(bv) return {type:"bloggervideo", src: cleanUrl(bv[1])};
 
-  /* Doğrudan video dosyası: mp4 / webm / mov, sorgu parametreli olabilir */
+  /* TikTok: "Embed" ile alınan <blockquote class="tiktok-embed" data-video-id="...">
+     ya da doğrudan resmi oynatıcı iframe'i (tiktok.com/player/v1/ID veya /embed/v2/ID).
+     Sadece video ID'sini alıyoruz; kendi resmi oynatıcı URL'imizi buildItem() kuruyor
+     (autoplay/mute postMessage ile kontrol edilebilsin diye — bkz. tiktokCommand). */
+  const ttBlock = html.match(/<blockquote\b[^>]*class=["'][^"']*tiktok-embed[^"']*["'][^>]*>/i);
+  const ttId = ttBlock ? (ttBlock[0].match(/data-video-id=["'](\d+)["']/i)||[])[1] : null;
+  if(ttId) return {type:"tiktok", src: ttId};
+  const ttM = html.match(/tiktok\.com\/(?:player\/v1|embed\/v2)\/(\d+)/i);
+  if(ttM) return {type:"tiktok", src: ttM[1]};
+
+  /* Facebook: "Video Yerleştirici"nden alınan hazır <iframe src="facebook.com/plugins/video.php...">
+     ya da SDK tabanlı <div class="fb-video" data-href="..."> biçimi. İkinci durumda
+     kendi plugin iframe URL'imizi kuruyoruz (SDK script'i olmadan da çalışsın diye). */
+  const fbIframe = html.match(/(?:src|data-src)=["'](https?:\/\/(?:www\.)?facebook\.com\/plugins\/video\.php[^"']+)["']/i);
+  if(fbIframe) return {type:"facebook", src: cleanUrl(fbIframe[1])};
+  const fbDiv = html.match(/<div\b[^>]*class=["'][^"']*fb-video[^"']*["'][^>]*data-href=["']([^"']+)["']/i);
+  if(fbDiv) return {type:"facebook", src: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(fbDiv[1])}&show_text=false&autoplay=true`};
+
+  /* Instagram: doğrudan gömülü /embed iframe'i, ya da resmi
+     <blockquote class="instagram-media" data-instgrm-permalink="..."> biçimi
+     (script olmadan da çalışsın diye kendi /embed URL'imizi kuruyoruz). */
+  const igIframe = html.match(/(?:src|data-src)=["'](https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/[A-Za-z0-9_-]+\/embed[^"']*)["']/i);
+  if(igIframe) return {type:"instagram", src: cleanUrl(igIframe[1])};
+  const igBlock = html.match(/<blockquote\b[^>]*class=["'][^"']*instagram-media[^"']*["'][^>]*>/i);
+  const igLink = igBlock ? (igBlock[0].match(/data-instgrm-permalink=["']([^"']+)["']/i)||[])[1] : null;
+  const igM = (igLink||"").match(/instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/i);
+  if(igM) return {type:"instagram", src: `https://www.instagram.com/${igM[1]}/${igM[2]}/embed`};
+
+  /* Vimeo: hazır <iframe src="https://player.vimeo.com/video/ID?h=HASH..."> —
+     tam URL'i (varsa özel/hash parametresiyle birlikte) olduğu gibi saklıyoruz,
+     eksik oynatma parametrelerini buildItem() tamamlıyor. Resmi postMessage
+     API'si var (bkz. vimeoCommand) — ses/oynatma TAM kontrol edilebiliyor. */
+  const vmM = html.match(/(?:src|data-src)=["'](https?:\/\/player\.vimeo\.com\/video\/\d+[^"']*)["']/i);
+  if(vmM) return {type:"vimeo", src: cleanUrl(vmM[1])};
+
+  /* Dailymotion: <iframe src="https://www.dailymotion.com/embed/video/ID..."> —
+     resmi bir postMessage API'si var ama komut biçimi güvenilir şekilde
+     belgelenmediğinden (sürümden sürüme değişebiliyor), ses kontrolü postMessage
+     yerine iframe URL'indeki "mute" parametresini değiştirip YENİDEN yükleyerek
+     yapılıyor (bkz. reloadDailymotionMute) — bu her koşulda çalışan tek
+     GÜVENİLİR yöntem. */
+  const dmM = html.match(/(?:src|data-src)=["'](?:https?:)?\/\/(?:www\.)?dailymotion\.com\/embed\/video\/([A-Za-z0-9]+)[^"']*["']/i);
+  if(dmM) return {type:"dailymotion", src: dmM[1]};
+
+  /* Twitter/X: resmi "Embed" kodu <blockquote class="twitter-tweet">...<a
+     href=".../status/ID">...</a></blockquote><script .../widgets.js">.
+     platform.x.com/embed/Tweet.html?id=ID, widgets.js'in kendi ürettiği ve
+     script olmadan da doğrudan çalışan iframe'dir. NOT: Bu regex tweetin
+     video içerip içermediğini AYIRT EDEMİYOR — video olmayan bir tweet
+     yerleştirilirse (nadir de olsa) o da "video konusu" sayılabilir; X'in
+     ayrıca dış bir ses/oynatma kontrol API'si de yok (Facebook/Instagram
+     ile aynı kısıt — bkz. skipTapLayer). */
+  const twBlock = html.match(/<blockquote\b[^>]*class=["'][^"']*twitter-tweet[^"']*["'][\s\S]*?<\/blockquote>/i);
+  const twM = (twBlock ? twBlock[0] : html).match(/(?:twitter|x)\.com\/[^\/"']+\/status\/(\d+)/i);
+  if(twM) return {type:"twitter", src: twM[1]};
+
+  /* Doğrudan video dosyası: mp4 / webm / mov, sorgu parametreli olabilir
+     (ör. GitHub'a yüklenmiş bir .mp4'ün raw linki de bu şekilde yakalanır) */
   const vid = html.match(/(?:src|data-src)=["']([^"']+\.(?:mp4|webm|mov)(?:\?[^"']*)?)["']/i);
   if(vid) return {type:"video", src: cleanUrl(vid[1])};
 
@@ -184,6 +266,47 @@ const ytCommand = (iframe, func, args=[]) => {
   setTimeout(send, 1600);
 };
 
+/* TikTok'un resmi Embed Player'ı da benzer bir postMessage protokolü kullanıyor
+   (bkz. developers.tiktok.com/doc/embed-player) — ama YouTube'dan farklı olarak
+   JSON.stringify GEREKTİRMİYOR, düz obje gönderiliyor ve "x-tiktok-player"
+   işareti taşıyor. "play"/"pause"/"mute"/"unMute" komutları destekleniyor. */
+const tiktokCommand = (iframe, type) => {
+  if(!iframe || !iframe.contentWindow) return;
+  const send = () => { try{ iframe.contentWindow.postMessage({type, "x-tiktok-player":true}, "*"); }catch(_){} };
+  send();
+  setTimeout(send, 250);
+  setTimeout(send, 800);
+  setTimeout(send, 1600);
+};
+
+/* Vimeo'nun resmi postMessage protokolü (player.js kütüphanesi olmadan da
+   çalışır): {"method":"play"} / {"method":"setVolume","value":0|1} gibi
+   JSON string'ler gönderiliyor. */
+const vimeoCommand = (iframe, method, value) => {
+  if(!iframe || !iframe.contentWindow) return;
+  const payload = JSON.stringify(value === undefined ? {method} : {method, value});
+  const send = () => { try{ iframe.contentWindow.postMessage(payload, "*"); }catch(_){} };
+  send();
+  setTimeout(send, 250);
+  setTimeout(send, 800);
+  setTimeout(send, 1600);
+};
+
+/* Dailymotion'ın postMessage komut biçimi güvenilir şekilde belgelenmediği
+   için ses durumu, iframe URL'indeki "mute" parametresini değiştirip
+   iframe'i YENİDEN yükleyerek uygulanıyor — bu her zaman çalışan tek kesin
+   yöntem (videoyu baştan başlatma bedeli var, ama sessiz kalma sorunundan
+   çok daha iyi bir takas). */
+const reloadDailymotionMute = (iframe, muted) => {
+  if(!iframe || !iframe.src) return;
+  try{
+    const url = new URL(iframe.src, location.href);
+    url.searchParams.set("mute", muted ? "1" : "0");
+    url.searchParams.set("autoplay", "1");
+    iframe.src = url.toString();
+  }catch(_){}
+};
+
 /* Bir öğe için "oynat" dokunma katmanını göster/gizle
    (tarayıcı otomatik oynatmayı engellerse kullanıcı elle başlatabilsin) */
 const setPlayOverlay = (item, show) => {
@@ -192,7 +315,11 @@ const setPlayOverlay = (item, show) => {
 };
 
 /* Ses durumunu TÜM yüklenmiş medyalara uygula (ayrı bir buton olmadığı için
-   artık ekrana dokunma hem başlığı gösteriyor hem sesi açıp kapatıyor). */
+   artık ekrana dokunma hem başlığı gösteriyor hem sesi açıp kapatıyor).
+   NOT: Facebook, Instagram ve Twitter/X gömmelerinde bu şekilde bir dış
+   kontrol imkanı YOK (herhangi bir resmi postMessage API'leri bulunmuyor)
+   — bu yüzden buraya dahil edilmediler, sesleri kendi oynatıcılarının
+   içindeki (varsa) düğmeyle kontrol edilebilir. */
 const applyMuted = muted => {
   globalMuted = muted;
   document.querySelectorAll(".ef-item.ef-loaded").forEach(it => {
@@ -200,6 +327,12 @@ const applyMuted = muted => {
     if(v) v.muted = globalMuted;
     const f = it.querySelector("iframe.ef-media[data-type='youtube']");
     if(f) ytCommand(f, globalMuted ? "mute" : "unMute");
+    const t = it.querySelector("iframe.ef-media[data-type='tiktok']");
+    if(t) tiktokCommand(t, globalMuted ? "mute" : "unMute");
+    const vm = it.querySelector("iframe.ef-media[data-type='vimeo']");
+    if(vm) vimeoCommand(vm, "setVolume", globalMuted ? 0 : 1);
+    const dm = it.querySelector("iframe.ef-media[data-type='dailymotion']");
+    if(dm) reloadDailymotionMute(dm, globalMuted);
   });
 };
 
@@ -234,6 +367,9 @@ const mediaObserver = new IntersectionObserver(entries => {
     const item    = e.target;
     const vid     = item.querySelector("video.ef-media");
     const ytFrame = item.querySelector("iframe.ef-media[data-type='youtube']");
+    const ttFrame = item.querySelector("iframe.ef-media[data-type='tiktok']");
+    const vmFrame = item.querySelector("iframe.ef-media[data-type='vimeo']");
+    const dmFrame = item.querySelector("iframe.ef-media[data-type='dailymotion']");
 
     if(e.isIntersecting){
       if(vid){
@@ -248,9 +384,22 @@ const mediaObserver = new IntersectionObserver(entries => {
         ytCommand(ytFrame, globalMuted ? "mute" : "unMute");
         ytCommand(ytFrame, "playVideo");
       }
+      if(ttFrame){
+        tiktokCommand(ttFrame, globalMuted ? "mute" : "unMute");
+        tiktokCommand(ttFrame, "play");
+      }
+      if(vmFrame){
+        vimeoCommand(vmFrame, "setVolume", globalMuted ? 0 : 1);
+        vimeoCommand(vmFrame, "play");
+      }
+      /* Dailymotion zaten data-src'sindeki autoplay=1 ile kendiliğinden
+         başlıyor; iframe her görünüme girişte YENİDEN yüklenip videoyu
+         baştan başlatmasın diye burada dokunulmuyor. */
     } else {
       if(vid){ vid.pause(); vid.currentTime = 0; setPlayOverlay(item, false); }
       if(ytFrame){ ytCommand(ytFrame, "pauseVideo"); }
+      if(ttFrame){ tiktokCommand(ttFrame, "pause"); }
+      if(vmFrame){ vimeoCommand(vmFrame, "pause"); }
     }
   });
 }, {root: container, threshold:0.5});
@@ -304,6 +453,39 @@ const buildItem = (post, idx) => {
   } else if(media.type === "bloggervideo"){
     const sep = media.src.includes("?") ? "&" : "?";
     mediaHtml = `<iframe class="ef-media" data-type="bloggervideo" data-src="${esc(media.src + sep + 'autoplay=1')}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  } else if(media.type === "tiktok"){
+    /* media.src burada sadece video ID'si — resmi oynatıcı URL'i kuruluyor.
+       muted=1: tarayıcı otomatik oynatmayı sessiz başlatınca engellemesin;
+       ses kontrolü tiktokCommand() ile postMessage üzerinden yapılıyor. */
+    const ttSrc = `https://www.tiktok.com/player/v1/${media.src}?autoplay=1&loop=1&muted=1&controls=0&progress_bar=0&play_button=0&volume_control=0&fullscreen_button=0&timestamp=0&music_info=0&description=0&closed_caption=0&native_context_menu=0&rel=0`;
+    mediaHtml = `<iframe class="ef-media" data-type="tiktok" data-src="${esc(ttSrc)}" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+  } else if(media.type === "facebook" || media.type === "instagram"){
+    /* Facebook/Instagram gömmelerinde ses/oynatma için HERHANGİ bir resmi
+       dışarıdan kontrol (postMessage) API'si yok — bu yüzden data-src
+       olduğu gibi kullanılıyor ve (aşağıda) üzerine dokunma katmanı
+       KONULMUYOR: kullanıcı, oynatıcının kendi (varsa) ses/oynat
+       düğmesine doğrudan dokunabilsin diye. */
+    const sep = media.src.includes("?") ? "&" : "?";
+    const extra = /autoplay=/i.test(media.src) ? "" : `${sep}autoplay=true`;
+    mediaHtml = `<iframe class="ef-media" data-type="${media.type}" data-src="${esc(media.src + extra)}" frameborder="0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  } else if(media.type === "vimeo"){
+    /* media.src burada zaten TAM iframe URL'i (h= hash dahil, varsa).
+       Eksik oynatma parametrelerini (autoplay/muted/loop/kontrolsüz)
+       ekliyoruz — resmi postMessage API'si sayesinde ses TAM kontrol
+       edilebiliyor (bkz. vimeoCommand). */
+    const sep = media.src.includes("?") ? "&" : "?";
+    mediaHtml = `<iframe class="ef-media" data-type="vimeo" data-src="${esc(media.src + sep + 'autoplay=1&muted=1&loop=1&background=0&controls=0&playsinline=1')}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  } else if(media.type === "dailymotion"){
+    /* media.src burada sadece video ID'si. Ses kontrolü postMessage yerine
+       URL parametresi + yeniden yükleme ile yapıldığından (bkz.
+       reloadDailymotionMute), başlangıçta sessiz+autoplay ile geliyor. */
+    mediaHtml = `<iframe class="ef-media" data-type="dailymotion" data-src="${esc(`https://www.dailymotion.com/embed/video/${media.src}?autoplay=1&mute=1&queue-enable=false&ui-start-screen-info=false&sharing-enable=false`)}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  } else if(media.type === "twitter"){
+    /* media.src burada sadece tweet ID'si. Twitter/X'in resmi widgets.js'in
+       kendi ürettiği ve script gerektirmeyen statik embed iframe'i kullanılıyor.
+       Facebook/Instagram gibi dış ses/oynatma kontrolü YOK — dokunma katmanı
+       eklenmiyor (aşağıda skipTapLayer). */
+    mediaHtml = `<iframe class="ef-media" data-type="twitter" data-src="${esc(`https://platform.twitter.com/embed/Tweet.html?id=${media.src}&theme=dark&dnt=true`)}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
   }
 
   /* Ses butonu kaldırıldı (v6) — video/YouTube her zaman sessiz başlar,
@@ -326,11 +508,14 @@ const buildItem = (post, idx) => {
          </svg>
        </div>` : "";
 
+  const skipTapLayer = media.type === "facebook" || media.type === "instagram" || media.type === "twitter";
+  const tapLayerHtml = skipTapLayer ? "" : `<div class="ef-tap-layer"></div>`;
+
   item.innerHTML = `
     ${backdropHtml}
     <div class="ef-stage">
       ${mediaHtml}
-      <div class="ef-tap-layer"></div>
+      ${tapLayerHtml}
       ${playOverlayHtml}
       <div class="ef-caption">
         <div class="ef-meta">
@@ -440,6 +625,8 @@ document.addEventListener("visibilitychange", () => {
   if(!document.hidden) return;
   document.querySelectorAll(".ef-item.ef-loaded video.ef-media").forEach(v => v.pause());
   document.querySelectorAll(".ef-item.ef-loaded iframe.ef-media[data-type='youtube']").forEach(f => ytCommand(f, "pauseVideo"));
+  document.querySelectorAll(".ef-item.ef-loaded iframe.ef-media[data-type='tiktok']").forEach(f => tiktokCommand(f, "pause"));
+  document.querySelectorAll(".ef-item.ef-loaded iframe.ef-media[data-type='vimeo']").forEach(f => vimeoCommand(f, "pause"));
 });
 
 /* ── Feed fetch (Blogger tek istekte ~150 sonuçla sınırlar,
@@ -484,7 +671,7 @@ fetchAllPosts()
        için post.__media içine önbelleklenir. */
     const videoEntries = entries.filter(post => {
       const media = extractMedia(post.content?.$t || post.summary?.$t || "");
-      const isVideo = media.type === "video" || media.type === "youtube" || media.type === "bloggervideo";
+      const isVideo = ["video","youtube","bloggervideo","tiktok","facebook","instagram","vimeo","dailymotion","twitter"].includes(media.type);
       if(isVideo) post.__media = media;
       return isVideo;
     });

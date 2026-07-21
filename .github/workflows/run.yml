@@ -8,6 +8,8 @@ on:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Depoyu Klonla
@@ -23,7 +25,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests feedparser beautifulsoup4
 
-    - name: 🔐 Şifreli Haber Hafızasını Yükle (Restore Cache)
+    - name: 🔐 Şifreli Haber Hafızasını Yükle
       uses: actions/cache/restore@v4
       with:
         path: .posted_cache.json
@@ -31,14 +33,22 @@ jobs:
         restore-keys: |
           blogger-news-permanent-cache
 
-    - name: ⚙️ Otomasyonu Görünmez Modda Çalıştır
+    - name: ⚙️ Otomasyonu Çalıştır
       env:
         BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
-        GIZLI_API_HAVUZU: ${{ secrets.GIZLI_API_HAVUZU }}
-        GIZLI_RSS_AYARLARI: ${{ vars.GIZLI_RSS_AYARLARI }}
+        GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+        GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
       run: python main.py
 
-    - name: 🔐 Güncel Haber Hafızasını Kilitle (Save Cache)
+    - name: 📝 Değişiklikleri Depoya İşle (Auto-Commit)
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Otomasyon: Zaman ayarları senkronize edildi" && git push)
+
+    - name: 🔐 Güncel Haber Hafızasını Kilitle
       if: always()
       uses: actions/cache/save@v4
       with:

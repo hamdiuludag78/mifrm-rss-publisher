@@ -1,92 +1,92 @@
-# 🔒 Ultra Profesyonel & Görünmez Blogger RSS Otomasyonu
+## 🔒 Ultra Profesyonel & Görünmez Blogger RSS Otomasyonu (Google OAuth 2.0 & GitHub Pages)
+Bu proje; harici hiçbir sunucuya, veritabanına (Supabase, MySQL vb.) veya geleneksel kısıtlı statik API anahtarlarına ihtiyaç duymadan, tamamen GitHub Actions, GitHub API ve resmi Google OAuth 2.0 entegrasyonu ile sıfır maliyetle çalışan kurumsal düzeyde bir RSS otomasyon sistemidir.
+Sistem, internet efsanesi dmoz.org dizini ruhuyla tasarlanmış açık renkli, sade ve %100 mobil uyumlu bir web yönetim paneline sahiptir. RSS adresleriniz, zaman ayarlarınız ve Google erişim yetkileriniz tamamen GitHub altyapısının arkasında şifrelenmiştir. Dışarıdan kodları inceleyen veya sitenize giren hiç kimse gizli verilerinizi kesinlikle göremez.
+------------------------------
+## ⚡ Sistem Mimarisi ve Üstün Özellikleri
 
-Bu proje; harici hiçbir sunucu veya veritabanı (Supabase, MySQL vb.) gerektirmeyen, **tamamen GitHub Actions ve GitHub API altyapısı üzerinde sıfır maliyetle çalışan** akıllı bir RSS otomasyon sistemidir. 
+* 💻 Nostaljik & Mobil Uyumlu Panel: %100 duyarlı (responsive) yapısıyla telefondan veya tabletten kolayca yönetilebilen klasik DMOZ açık tema arayüzü.
+* 🔑 Resmi Google OAuth 2.0 Girişi: Kapsamı daraltılmış veya çalınabilecek statik API anahtarları yerine doğrudan hamdiuludag@gmail.com hesabınızla resmi Google izin ekranı üzerinden güvenli kimlik doğrulama.
+* ⏱️ Kalıcı Arka Plan Yetkisi (Refresh Token): Bilgisayarınızı kapatsanız dahi GitHub Actions robotunun 5 dakikada bir Blogger'a içerik yükleyebilmesi için otonom yenileme jetonu sistemi. Kota veya oturum kapanma sorunlarına son!
+* 🗃️ Yerel Dosya Tabanlı Veri Yönetimi: Tüm RSS havuzu deponuzun içindeki data.json dosyasında şifreli olarak saklanır, CORS engellerine takılmaz ve Türkçe karakterler asla bozulmaz.
+* 🧠 Kilitli Önbellek (Cache) Belleği: Paylaşılan haberlerin benzersiz MD5 özetlerini GitHub Actions şifreli çalışma alanında saklar. Aynı haberler blogunuza asla mükerrer (çift) olarak basılmaz.
 
-Sistem, dmoz.org dizini ruhuyla tasarlanmış açık renkli, sade ve %100 mobil uyumlu bir web yönetim paneline sahiptir. RSS adresleriniz, zaman ayarlarınız ve Blogger API anahtarlarınız tamamen GitHub sisteminin arkasında şifrelenmiştir. Dışarıdan kodları inceleyen veya sitenize giren hiç kimse gizli verilerinizi, API anahtarlarınızı veya bağladığınız kaynakları kesinlikle göremez.
+------------------------------
+## 📋 Baştan Sona Eksiksiz Kurulum Kılavuzu
+Sistemin sıfır hata ile ve tek seferde çalışabilmesi için aşağıdaki 6 ana adımı eksiksiz olarak uygulayın.
+## 1. Adım: Blogger Blog ID Numaranızı Alın
 
----
+   1. [Blogger](https://www.blogger.com/) panelinize giriş yapın.
+   2. Tarayıcınızın adres çubuğundaki URL'yi kontrol edin.
+   3. URL'nin en sonunda yer alan blogID=XXXXXXXXXXXXXXXXXXX ifadesindeki sadece sayıları kopyalayın ve bir yere not edin. Bu sizin BLOGGER_BLOG_ID değerinizdir.
 
-## ⚡ Temel Sistem Özellikleri
+------------------------------
+## 2. Adım: GitHub Giriş Şifrenizi (Personal Access Token) Üretin
+Web panelinizin deponuzdaki data.json dosyasını otomatik güncelleyebilmesi için bu şifreyi almalısınız:
 
-- 💻 **Nostaljik & Mobil Uyumlu Panel:** %100 duyarlı (responsive) yapısıyla telefondan veya tabletten kolayca yönetilebilen klasik DMOZ açık tema arayüzü.
-- 🔑 **Yedekli Çoklu API Havuzu:** Günlük 10.000 olan Blogger API istek sınırı dolduğunda, sistem hata vermeden havuzdaki bir sonraki yedek anahtara otomatik geçiş yapar.
-- ⏱️ **Akıllı Zamanlama Filtresi:** Her RSS kaynağı için ayrı zaman periyotları (5, 10, 20, 30 dakika veya 1, 2, 3 saat) belirleyebilme esnekliği.
-- 🛡️ **Görünmez Veri Güvenliği:** Panel girişinde şifre olarak sizin oluşturacağınız **GitHub Personal Access Token (PAT)** kullanılır. Bu sayede tarayıcıda veya kaynak kodda hiçbir şifre barındırılmaz.
-- 📝 **Zengin Metin (HTML) Editör Uyumluluğu:** Çekilen RSS içeriklerini tarayarak zararlı script veya stil etiketlerini ayıklar ve Blogger editörünü bozmayacak pürüzsüz HTML biçiminde yayınlar.
-- 🧠 **Kilitli Bellek Sistemi:** Paylaşılan haberlerin benzersiz MD5 özetlerini GitHub Actions şifreli önbelleğinde (`cache`) saklar. Deponuza hiçbir JSON dosyası commit edilmez, böylece deponuz temiz kalır ve haberler asla mükerrer (çift) paylaşılmaz.
+   1. GitHub profil resminize tıklayıp Settings (Ayarlar) > Developer Settings (Geliştirici Ayarları) sayfasına gidin.
+   2. Doğrudan gitmek için: [GitHub Tokens (Classic) Sayfası](https://github.com/settings/tokens) linkini kullanabilirsiniz.
+   3. Generate new token > Generate new token (classic) butonuna basın.
+   4. Note: Bölümüne Blogger Bot Paneli yazın. Expiration: Süresini No expiration (Süresiz) yapın.
+   5. Select Scopes (İzinler): Şu iki ana kutucuğu mutlaka mavi tık ile işaretleyin:
+   * ⬜ repo (Depo yönetimi ve dosya yazma izni - Komple işaretleyin)
+      * ⬜ workflow (Otomasyon tetiklemeleri için - İşaretleyin)
+   6. En alttaki yeşil Generate token butonuna basın ve ekrana gelen ghp_... şeklindeki uzun kodu kopyalayıp güvenli bir yere kaydedin. (Sayfa yenilendiğinde bu kod bir daha gösterilmez!)
 
----
+------------------------------
+## 3. Adım: Google Cloud Üzerinden OAuth 2.0 İstemci Kimliği Üretin
+Sistemin API anahtarsız, doğrudan resmi e-posta onay ekranı ile çalışabilmesi için bu adımı uygulayın:
 
-## 🛠️ Sıfır Hata İle Adım Adım Kurulum Kılavuzu
+   1. [Google Cloud Console](https://console.cloud.google.com/) adresine girin ve projenizi seçin.
+   2. Sol menüden API'ler ve Hizmetler > OAuth onay ekranı (OAuth consent screen) sayfasına gidin.
+   3. Kullanıcı Türünü Harici (External) seçip oluşturun. Uygulama adı alanına Blogger RSS Otomasyonu, destek e-postası alanına ise kendi e-postanızı yazıp kaydedin.
+   4. Sol menüden Kimlik Bilgileri (Credentials) sayfasına geçin.
+   5. Üst menüden + Kimlik Bilgisi Oluştur > OAuth istemci kimliği (OAuth client ID) seçeneğine tıklayın.
+   6. Uygulama türünü Web uygulaması (Web application) seçin.
+   7. Yetkilendirilmiş yönlendirme URI'leri (Authorized redirect URIs) başlığının altındaki + URL EKLE butonuna basın ve panelinizin tam linkini buraya yapıştırın:
+   https://github.io
+   8. Oluştur (Create) butonuna basın. Ekrana gelen "İstemci Kimliğiniz" (Client ID) (.apps.googleusercontent.com ile biten kod) ve "Gizli İstemci Şifresi" (Client Secret) metinlerini kopyalayıp not edin.
 
-Sistemi hatasız ayağa kaldırmak için aşağıdaki 5 ana adımı sırasıyla uygulayın:
+------------------------------
+## 4. Adım: Otonom Arka Plan Şifresini (Refresh Token) Alın
+Botun siz bilgisayarı kapattığınızda da Google adına 5 dakikada bir çalışabilmesi için kalıcı yenileme jetonunu almalıyız:
 
-### Adım 1: Blogger Blog ID Numaranızı Bulun
-1. [Blogger](https://blogger.com) panelinize giriş yapın.
-2. Tarayıcınızın adres çubuğundaki URL kontrol edin.
-3. URL'nin en sonunda yer alan `blogID=XXXXXXXXXXXXXXXXXXX` ifadesindeki **sadece sayıları** kopyalayın ve bir yere not edin. Bu sizin `BLOGGER_BLOG_ID` değerinizdir.
+   1. Resmi [Google OAuth 2.0 Playground](https://developers.google.com/oauthplayground/) adresine gidin.
+   2. Sağ üst köşedeki çark (OAuth 2.0 configuration) simgesine tıklayın.
+   3. ⬜ Use your own OAuth credentials kutucuğunu işaretleyin.
+   4. OAuth Client ID ve OAuth Client Secret alanlarına 3. Adımda Google Cloud'dan aldığınız kodları yapıştırıp kapatın.
+   5. Sol taraftaki listeden Blogger API v3 bulun veya üstteki kutucuğa tam olarak şunu yazın: https://googleapis.com
+   6. Mavi Authorize APIs butonuna basın. Karşınıza gelen resmi Google ekranında hamdiuludag@gmail.com hesabınızı seçip uygulamaya tam yetki onayı verin.
+   7. Sayfa sizi Playground'a geri atacaktır. Sol menüdeki Step 2 alanında yer alan yeşil Exchange authorization code for tokens butonuna tıklayın.
+   8. Alt satırda açılan Refresh Token kutusunun içindeki uzun kodu kopyalayıp not edin. Bu botunuzun otonom çalışma anahtarıdır.
 
----
+------------------------------
+## 5. Adım: GitHub Secrets (Gizli Anahtarlar) Yapılandırması
+Topladığımız tüm gizli şifreleri Actions robotunun okuyabilmesi için deponuzun arkasına kilitleyelim:
 
-### Adım 2: Google Cloud Üzerinden API Anahtarı Havuzu Oluşturun
-> 💡 *Blogger günlük kota sınırını (10.000) aşmak ve kotayı katlamak için bu adımı farklı Google hesaplarıyla tekrarlayarak birden fazla anahtar almanız önerilir.*
+   1. GitHub deponuzda üst menüden Settings (Ayarlar) sekmesine tıklayın.
+   2. Sol menüden sırasıyla Secrets and variables > Actions yolunu takip edin.
+   3. New repository secret butonuna basarak aşağıdaki 4 gizli kilidi tek tek tanımlayın:
+   * BLOGGER_BLOG_ID : 1. Adımdaki Blogger sayısal ID numaranız.
+      * GOOGLE_CLIENT_ID : 3. Adımdaki Google İstemci Kimliği (Client ID).
+      * GOOGLE_CLIENT_SECRET : 3. Adımdaki Gizli İstemci Şifresi (Client Secret).
+      * GOOGLE_REFRESH_TOKEN : 4. Adımdaki Google Kalıcı Yenileme Jetonu (Refresh Token).
+   
+------------------------------
+## 6. Adım: GitHub Pages (Canlı Panel) Yayını
 
-1. [Google Cloud Console](https://google.com) adresine gidin.
-2. Üst menüden **"Proje Seçin" > "Yeni Proje"** diyerek projenizi oluşturun.
-3. Sol menüden **"API'ler ve Hizmetler" > "Kitaplık" (Library)** sekmesine geçin.
-4. Arama çubuğuna **"Blogger API v3"** yazın, çıkan sonuca tıklayın ve **"Etkinleştir" (Enable)** butonuna basın.
-5. API aktif olduktan sonra yönlendirildiğiniz ekranda (veya sol menüde) **"Kimlik Bilgileri" (Credentials)** sekmesine tıklayın.
-6. Üstteki **"+ Kimlik Bilgisi Oluştur" > "API Anahtarı" (API Key)** seçeneğini seçin.
-7. Ekrana gelen `AIzaSy...` ile başlayan uzun kodu kopyalayın ve bir yere not edin.
+   1. Deponuzda Settings > Pages seçeneğine tıklayın.
+   2. Build and deployment altındaki Source kısmını "Deploy from a branch" yapın.
+   3. Branch ayarını main seçip klasörü / (root) olarak belirleyerek Save butonuna basın.
+   4. 1-2 dakika içinde web siteniz resmi olarak https://github.io adresinde yayına alınacaktır.
 
----
+------------------------------
+## 🎮 Yönetim Panelinin Kullanımı ve Akışı
 
-### Adım 3: GitHub Giriş Şifrenizi (Personal Access Token) Üretin
-Yönetim panelinizin deponuzdaki ayarları güvenle güncelleyebilmesi için bu şifreyi almanız şarttır:
-1. GitHub panelinizde sağ üstteki **Profil Resminize** tıklayıp **Settings (Ayarlar)** sayfasına gidin.
-2. Sol menünün en altındaki **Developer Settings (Geliştirici Ayarları)** sekmesine tıklayın.
-3. **Personal access tokens > Tokens (classic)** yolunu izleyin.
-4. Sağ üstteki **Generate new token > Generate new token (classic)** butonuna basın.
-5. **Note:** Bölümüne `Blogger Bot Sifresi` yazın. **Expiration:** Süresini isteğinize göre (Örn: `No expiration` - Süresiz) ayarlayın.
-6. **Select Scopes (İzinler):** Panelinizin çalışması için şu iki ana kutucuğu mutlaka işaretlemelisiniz:
-   - ⬜ **`repo`** (Depo yönetimi için - Komple işaretleyin)
-   - ⬜ **`workflow`** (Otomasyon tetiklemeleri için - İşaretleyin)
-7. Sayfanın en altındaki yeşil **Generate token** butonuna basın.
-8. Karşınıza gelen **`ghp_...`** şeklindeki uzun kodu hemen kopyalayıp güvenli bir yere kaydedin. *(Sayfa yenilendiğinde bu kod bir daha gösterilmeyecektir!)*
+   1. Tarayıcınızdan canlı panel linkinize gidin.
+   2. GitHub Token Şifreniz kutusuna 2. Adımda aldığınız ghp_... kodunu yapıştırın.
+   3. hamdiuludag@gmail.com ile Giriş butonuna basın. Resmi Google penceresi açılacaktır, onay verip ilerleyin.
+   4. Panel otomatik olarak açılacak ve deponuzdaki data.json dosyasını tarayarak aktif havuzunuzu listetecektir.
+   5. Yeni Otomatik RSS Adresi Tanımla formunu doldurup Ayarları Depoya Kaydet dediğinizde sistem Türkçe karakterleri koruyarak deponuza güvenli bir şekilde commit atacaktır.
+   6. GitHub Actions arka planda her 5 dakikada bir otomatik olarak uyanır, taze Google token'ını çeker ve süresi gelmiş RSS kaynaklarındaki içerikleri pürüzsüz HTML biçiminde Blogger sitenize yükler.
 
----
-
-### Adım 4: GitHub Deponuzun Gizli Kilitlerini Yapılandırın
-GitHub deponuzun ana sayfasındaki üst menüden **Settings (Ayarlar)** sekmesine tıklayın. Sol menüden **Secrets and variables > Actions** yolunu takip edin.
-
-#### A) Şifreli Gizli Veriler (Secrets Sekmesi)
-**New repository secret** butonuna basarak şu iki gizli kilidi tanımlayın:
-1. **Name:** `BLOGGER_BLOG_ID` | **Value:** *Adım 1'de aldığınız sayısal ID.*
-2. **Name:** `GIZLI_API_HAVUZU` | **Value:** *Adım 2'de aldığınız API anahtarlarını aralarına virgül koyarak, **tam olarak aşağıdaki köşeli parantez formatında** girin:*
-   ```json
-   ["AIzaSyBirinciAnahtar", "AIzaSyIkinciAnahtar", "AIzaSyUcuncuAnahtar"]
-   ```
-
-#### B) Düzenlenebilir Ayarlar (Variables Sekmesi)
-Secrets butonunun hemen sağındaki **Variables** sekmesine geçin. **New repository variable** butonuna tıklayın:
-1. **Name:** `GIZLI_RSS_AYARLARI` | **Value:** *İçine sadece boş bir dizin açmak için tam olarak şu iki karakteri yazıp kaydedin:* `[]`
-
----
-
-### Adım 5: Yönetim Panelinizi Yayına Alın (GitHub Pages)
-1. Deponuzda **Settings (Ayarlar)** sekmesine girin.
-2. Sol menüden **Pages** seçeneğine tıklayın.
-3. *Build and deployment* başlığı altındaki *Source* kısmını **"Deploy from a branch"** yapın.
-4. *Branch* ayarını `main` (veya `master`) seçip klasörü `/ (root)` olarak belirleyerek **Save** butonuna basın.
-5. 1-2 dakika sonra sayfayı yenilediğinizde üst alanda size özel panel web site adresiniz (`https://github.io`) yeşil onay işaretiyle görünecektir.
-
----
-
-## 🎮 Yönetim Panelinin Kullanımı
-
-1. GitHub Pages'ın size sağladığı canlı web site adresine gidin.
-2. Giriş ekranındaki bilgileri şu şekilde doldurun:
-   - **Kullanıcı Adı:** `Hamdi`
-   - **GitHub Token (Şifreniz):** *Adım 3'te kopyaladığınız **`ghp_...`** kodu.*
-3. **Sisteme Giriş Yap** butonuna bastığınızda, paneliniz GitHub API'sine bağlanarak arka plandaki tüm aktif RSS havuzunuzu önünüze listeleyecektir.
-4. **Yeni Otomatik RSS Adresi Tanımla** kutusunu kullanarak dilediğiniz haber kaynaklarını ekleyebilir, zaman periyotlarını seçip **Ayarları Şifreli Güncelle** butonuna basarak sistemi tamamen otomatik pilotta çalıştırabilirsiniz!
+Sistem kurulumu tamamen bitti! Panel linkinize girip ilk resmi Google onaylı akışınızı başlatabilirsiniz.

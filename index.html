@@ -7,7 +7,6 @@
     <link href="https://googleapis.com" rel="stylesheet">
     <link href="https://jsdelivr.net" rel="stylesheet">
     <link href="https://cloudflare.com" rel="stylesheet">
-    <!-- Google ve GitHub API Kütüphaneleri -->
     <script src="https://google.com" async defer></script>
     <style>
         :root { --dmoz-green: #228b22; --dmoz-bar-green: #ccffcc; --dmoz-bg: #ffffff; --dmoz-gray-bar: #eeeeee; --dmoz-text: #000000; }
@@ -16,19 +15,19 @@
         .login-card { background-color: var(--dmoz-bg); border: 2px solid var(--dmoz-green); border-radius: 4px; width: 100%; max-width: 420px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .login-card .form-control { background-color: #ffffff; border: 1px solid #7f9db9; color: #000000; border-radius: 2px; }
         .btn-dmoz-primary { background-color: var(--dmoz-bar-green); color: #000000; border: 1px solid #7f9db9; font-weight: bold; border-radius: 2px; }
+        .btn-dmoz-primary:hover { background-color: #b3ffb3; border-color: var(--dmoz-green); }
         .dashboard-wrapper { display: none; min-height: 100vh; flex-direction: column; }
         .sidebar { width: 260px; background-color: #fcfcfc; border-right: 2px solid var(--dmoz-gray-bar); color: #000000; min-height: 100vh; position: fixed; padding: 2rem 1.25rem; z-index: 100; transition: transform 0.3s ease; }
         .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 2rem; transition: margin 0.3s ease, width 0.3s ease; }
         .mobile-header { display: none; background-color: var(--dmoz-gray-bar); border-bottom: 2px solid #dddddd; color: #000000; padding: 1rem; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 101; }
         .card-custom { background: #ffffff; border: 1px solid var(--dmoz-green); border-radius: 4px; margin-bottom: 2rem; overflow: hidden; }
         .card-custom-header { padding: 0.75rem 1.25rem; font-weight: bold; background-color: var(--dmoz-bar-green); color: #000000; border-bottom: 1px solid var(--dmoz-green); display: flex; align-items: center; gap: 0.5rem; font-size: 15px; }
-        .form-select, .form-control { border-radius: 2px; border: 1px solid #7f9db9; }
         @media (max-width: 991.98px) { .sidebar { transform: translateX(-100%); height: 100vh; background-color: #ffffff; } .sidebar.active { transform: translateX(0); } .main-content { margin-left: 0; width: 100%; padding: 1.25rem; } .mobile-header { display: flex; } }
     </style>
 </head>
 <body>
 
-    <!-- GİRİŞ EKRANI (Google Yetki Ekranı Entegrasyonlu) -->
+    <!-- GİRİŞ EKRANI -->
     <div id="loginSection" class="login-wrapper">
         <div class="login-card">
             <div class="text-center mb-4">
@@ -38,22 +37,20 @@
             </div>
             
             <div class="mb-3">
-                <label class="form-label small fw-bold"><i class="fa-solid fa-key me-1" style="color: var(--dmoz-green)"></i> GitHub Token (Ayar Kaydı İçin)</label>
+                <label class="form-label small fw-bold"><i class="fa-solid fa-key me-1" style="color: var(--dmoz-green)"></i> GitHub Token Şifreniz</label>
                 <input type="password" id="githubTokenInput" class="form-control" placeholder="ghp_...">
             </div>
 
-            <!-- Resmi Google Doğrulama Butonu -->
             <div class="text-center my-4">
                 <button onclick="requestGoogleAuth()" class="btn btn-dmoz-primary btn-lg w-100 py-2.5">
-                    <i class="fa-brands fa-google me-2" style="color: #4285F4"></i> hamdiuludag@gmail.com ile Onayla
+                    <i class="fa-brands fa-google me-2" style="color: #4285F4"></i> hamdiuludag@gmail.com ile Giriş
                 </button>
             </div>
-
-            <div id="loginError" class="text-danger text-center small fw-bold" style="display:none;"><i class="fa-solid fa-triangle-exclamation me-1"></i> Erişim onayı reddedildi veya Token geçersiz!</div>
+            <div id="loginError" class="text-danger text-center small fw-bold" style="display:none;"><i class="fa-solid fa-triangle-exclamation me-1"></i> Bağlantı veya yetki hatası oluştu!</div>
         </div>
     </div>
 
-    <!-- PANEL EKRANI -->
+    <!-- MAIN DASHBOARD -->
     <div id="adminSection" class="dashboard-wrapper">
         <div class="mobile-header">
             <h5 class="fw-bold m-0" style="color: var(--dmoz-green)"><i class="fa-solid fa-folder-tree me-2"></i>dmoz / blogger-rss</h5>
@@ -68,14 +65,14 @@
                 </div>
                 <div class="p-2 small mb-3" style="background-color: var(--dmoz-gray-bar); font-weight: bold; border-left: 3px solid var(--dmoz-green)">Top: Dünya: Türkçe</div>
                 <div class="nav flex-column nav-pills">
-                    <a class="nav-link active py-2 px-2 small fw-bold mb-1 rounded-0" href="#" style="background-color: var(--dmoz-bar-green); color: #000000; border: 1px solid var(--dmoz-green)"><i class="fa-solid fa-square-rss me-2" style="color: var(--dmoz-green)"></i> RSS Otomasyon Havuzu</a>
+                    <a class="nav-link active py-2 px-2 small fw-bold mb-1 rounded-0" href="#"><i class="fa-solid fa-square-rss me-2" style="color: var(--dmoz-green)"></i> RSS Otomasyon Havuzu</a>
                 </div>
             </div>
             <div class="d-flex align-items-center p-2" style="background-color: var(--dmoz-gray-bar); border: 1px solid #dddddd;">
                 <div class="rounded-circle bg-white text-dark d-flex align-items-center justify-content-center border" style="width: 34px; height: 34px; border-color: var(--dmoz-green) !important;"><i class="fa-solid fa-user" style="color: var(--dmoz-green)"></i></div>
                 <div class="ms-2">
                     <div class="small fw-bold">Hamdi (Editör)</div>
-                    <div class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>Oauth2 Bağlı</div>
+                    <div class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>OAuth2 Bağlı</div>
                 </div>
             </div>
         </div>
@@ -118,3 +115,10 @@
                             <input type="text" id="customLabels" class="form-control" placeholder="haber, guncel, sondakika">
                         </div>
                         <div class="col-12 text-end">
+                            <button onclick="addNewRss()" class="btn btn-dmoz-primary px-4 fw-bold w-100 w-sm-auto"><i class="fa-solid fa-file-shield me-1" style="color: var(--dmoz-green)"></i> Ayarları Depoya kaydet</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-custom">

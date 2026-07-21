@@ -4,140 +4,215 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blogger RSS Otomasyon &amp; Yönetim Paneli</title>
-    <!-- Google Fonts, Bootstrap 5 ve Font Awesome Akıllı İkonlar -->
+    <!-- Klasik DMOZ Ruhu: Sade, Açık Renk ve Mobil Uyumlu -->
     <link href="https://googleapis.com" rel="stylesheet">
     <link href="https://jsdelivr.net" rel="stylesheet">
     <link href="https://cloudflare.com" rel="stylesheet">
     <style>
-        :root { --bg-dark-900: #0f172a; --bg-dark-800: #1e293b; --border-dark: #334155; --text-muted: #94a3b8; }
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 0; }
-        .login-wrapper { background-color: var(--bg-dark-900); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .login-card { background-color: var(--bg-dark-800); border: 1px solid var(--border-dark); border-radius: 16px; width: 100%; max-width: 410px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
-        .login-card .form-control { background-color: var(--bg-dark-900); border: 1px solid var(--border-dark); color: #ffffff; }
-        .login-card .form-control:focus { background-color: var(--bg-dark-900); color: #ffffff; border-color: #3b82f6; box-shadow: none; }
-        .dashboard-wrapper { display: none; min-height: 100vh; flex-direction: column; }
-        .sidebar { width: 260px; background-color: var(--bg-dark-900); color: #ffffff; min-height: 100vh; position: fixed; padding: 2rem 1.5rem; z-index: 100; transition: transform 0.3s ease; }
-        .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 2rem; transition: margin 0.3s ease, width 0.3s ease; }
-        .mobile-header { display: none; background-color: var(--bg-dark-900); color: #ffffff; padding: 1rem; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 101; }
-        .card-custom { background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 2rem; overflow: hidden; }
-        .card-custom-header { padding: 1rem 1.5rem; font-weight: 600; color: #ffffff; display: flex; align-items: center; gap: 0.5rem; }
-        @media (max-width: 991.98px) { .sidebar { transform: translateX(-100%); height: 100vh; } .sidebar.active { transform: translateX(0); } .main-content { margin-left: 0; width: 100%; padding: 1.25rem; } .mobile-header { display: flex; } }
+        :root { 
+            --dmoz-green: #228b22; 
+            --dmoz-light-green: #e1f5fe; /* Soft DMOZ Üst Alanı */
+            --dmoz-bar-green: #ccffcc; /* Klasik DMOZ Kategori Yeşili */
+            --dmoz-bg: #ffffff; 
+            --dmoz-gray-bar: #eeeeee; /* DMOZ Alt Arama Çubuğu Grisi */
+            --dmoz-text: #000000;
+            --dmoz-link: #0000cc;
+        }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-color: var(--dmoz-bg); 
+            color: var(--dmoz-text); 
+            margin: 0; 
+            padding: 0; 
+        }
+        a { color: var(--dmoz-link); text-decoration: underline; }
+        
+        /* %100 MOBİL DOSTU ESNEK GİRİŞ EKRANI */
+        .login-wrapper { 
+            background-color: #f6f6f6; 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 1.25rem;
+        }
+        .login-card { 
+            background-color: var(--dmoz-bg); 
+            border: 2px solid var(--dmoz-green); 
+            border-radius: 4px; 
+            width: 100%; 
+            max-width: 420px; 
+            padding: 2rem; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+        }
+        .login-card .form-control { 
+            background-color: #ffffff; 
+            border: 1px solid #7f9db9; 
+            color: #000000; 
+            border-radius: 2px;
+        }
+        .login-card .form-control:focus {
+            border-color: var(--dmoz-green);
+            box-shadow: 0 0 0 2px rgba(34, 139, 34, 0.15);
+        }
+        .btn-dmoz-primary {
+            background-color: var(--dmoz-bar-green);
+            color: #000000;
+            border: 1px solid #7f9db9;
+            font-weight: bold;
+            border-radius: 2px;
+        }
+        .btn-dmoz-primary:hover {
+            background-color: #b3ffb3;
+            border-color: var(--dmoz-green);
+        }
+
+        /* %100 MOBİL UYUMLU DUYARLI PANEL MİMARİSİ */
+        .dashboard-wrapper { 
+            display: none; 
+            min-height: 100vh; 
+            flex-direction: column; 
+        }
+        .sidebar { 
+            width: 260px; 
+            background-color: #fcfcfc; 
+            border-right: 2px solid var(--dmoz-gray-bar);
+            color: #000000; 
+            min-height: 100vh; 
+            position: fixed; 
+            padding: 2rem 1.25rem; 
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        .main-content { 
+            margin-left: 260px; 
+            width: calc(100% - 260px); 
+            padding: 2rem; 
+            transition: margin 0.3s ease, width 0.3s ease; 
+        }
+        .mobile-header { 
+            display: none; 
+            background-color: var(--dmoz-gray-bar); 
+            border-bottom: 2px solid #dddddd;
+            color: #000000; 
+            padding: 1rem; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 101; 
+        }
+        
+        /* DMOZ Klasik Kutu Tasarımları */
+        .card-custom { 
+            background: #ffffff; 
+            border: 1px solid var(--dmoz-green); 
+            border-radius: 4px; 
+            margin-bottom: 2rem; 
+            overflow: hidden; 
+        }
+        .card-custom-header { 
+            padding: 0.75rem 1.25rem; 
+            font-weight: bold; 
+            background-color: var(--dmoz-bar-green);
+            color: #000000; 
+            border-bottom: 1px solid var(--dmoz-green);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 15px;
+        }
+        .form-select, .form-control {
+            border-radius: 2px;
+            border: 1px solid #7f9db9;
+        }
+        
+        /* RESPONSIVE BREAKPOINTS (TAM MOBİL AYARLARI) */
+        @media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); height: 100vh; background-color: #ffffff; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; padding: 1.25rem; }
+            .mobile-header { display: flex; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- GİRİŞ EKRANI -->
+    <!-- ====================================================================
+         GİRİŞ EKRANI (DMOZ Açık Tema)
+         ==================================================================== -->
     <div id="loginSection" class="login-wrapper">
         <div class="login-card">
             <div class="text-center mb-4">
-                <div class="d-inline-block p-3 mb-2 rounded-circle" style="background: rgba(37,99,235,0.15)">
-                    <i class="fa-solid fa-user-shield fa-2x text-primary"></i>
+                <div class="d-inline-block p-2 mb-2" style="background: var(--dmoz-bar-green); border: 1px solid var(--dmoz-green);">
+                    <i class="fa-solid fa-folder-open fa-2x" style="color: var(--dmoz-green)"></i>
                 </div>
-                <h4 class="text-white fw-bold mb-1">Kilitli Giriş Paneli</h4>
-                <p style="color: var(--text-muted); font-size: 13px;">Giriş için GitHub Token şifrenizi kullanın</p>
+                <h4 class="fw-bold mb-1" style="color: var(--dmoz-green)">dmoz otomasyon</h4>
+                <p class="text-muted small">Blogger RSS Yönetim Paneli</p>
             </div>
             <div class="mb-3">
-                <label class="form-label text-white-50 small fw-medium"><i class="fa-solid fa-user me-1"></i> Kullanıcı Adı</label>
-                <input type="text" id="usernameInput" class="form-control form-control-lg" placeholder="Hamdi" autocomplete="off">
+                <label class="form-label small fw-bold"><i class="fa-solid fa-user me-1" style="color: var(--dmoz-green)"></i> Kullanıcı Adı</label>
+                <input type="text" id="usernameInput" class="form-control" placeholder="Hamdi" autocomplete="off">
             </div>
             <div class="mb-4">
-                <label class="form-label text-white-50 small fw-medium"><i class="fa-solid fa-key me-1"></i> GitHub Token (Şifreniz)</label>
-                <input type="password" id="passwordInput" class="form-control form-control-lg" placeholder="ghp_...">
+                <label class="form-label small fw-bold"><i class="fa-solid fa-key me-1" style="color: var(--dmoz-green)"></i> GitHub Token (Şifreniz)</label>
+                <input type="password" id="passwordInput" class="form-control" placeholder="ghp_...">
             </div>
-            <button onclick="handleLogin()" class="btn btn-primary btn-lg w-100 fw-bold">
-                <i class="fa-solid fa-right-to-bracket me-1"></i> Güvenli Giriş
+            <button onclick="handleLogin()" class="btn btn-dmoz-primary btn-lg w-100">
+                <i class="fa-solid fa-right-to-bracket me-1"></i> Sisteme Giriş Yap
             </button>
-            <div id="loginError" class="text-danger mt-3 text-center small fw-medium" style="display:none;">
-                <i class="fa-solid fa-circle-exclamation me-1"></i> Doğrulama başarısız! Bilgileri veya Token izinlerinizi kontrol edin.
+            <div id="loginError" class="text-danger mt-3 text-center small fw-bold" style="display:none;">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Doğrulama başarısız! Token kodunu kontrol edin.
             </div>
         </div>
     </div>
 
-    <!-- MOBİL UYUMLU DASHBOARD -->
+    <!-- ====================================================================
+         DASHBOARD PANELİ (DMOZ Klasik Dizin Teması)
+         ==================================================================== -->
     <div id="adminSection" class="dashboard-wrapper">
         
+        <!-- Mobil Menü Barı -->
         <div class="mobile-header">
-            <h5 class="fw-bold m-0"><i class="fa-solid fa-square-rss me-2 text-primary"></i>Blogger RSS</h5>
-            <button class="btn btn-dark btn-sm" onclick="toggleSidebar()"><i class="fa-solid fa-bars fa-lg"></i></button>
+            <h5 class="fw-bold m-0" style="color: var(--dmoz-green)"><i class="fa-solid fa-folder-tree me-2"></i>dmoz / blogger-rss</h5>
+            <button class="btn btn-outline-secondary btn-sm" onclick="toggleSidebar()"><i class="fa-solid fa-bars fa-lg"></i></button>
         </div>
 
+        <!-- Sol Sidebar Menü -->
         <div class="sidebar d-flex flex-column justify-content-between" id="sidebarMenu">
             <div>
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="fw-bold m-0"><i class="fa-solid fa-square-rss me-2 text-primary"></i>Blogger RSS</h4>
-                    <button class="btn btn-link text-white p-0 d-lg-none" onclick="toggleSidebar()"><i class="fa-solid fa-xmark fa-xl"></i></button>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold m-0" style="color: var(--dmoz-green)"><i class="fa-solid fa-folder-tree me-2"></i>dmoz dizini</h4>
+                    <button class="btn btn-link text-dark p-0 d-lg-none" onclick="toggleSidebar()"><i class="fa-solid fa-xmark fa-xl"></i></button>
                 </div>
-                <hr style="border-color: var(--border-dark)">
-                <div class="nav flex-column nav-pills mt-4">
-                    <a class="nav-link active py-2.5 px-3 rounded-3 small fw-semibold mb-2" href="#">
-                        <i class="fa-solid fa-network-wired me-2"></i> RSS Otomasyonu
+                <div class="p-2 small mb-3" style="background-color: var(--dmoz-gray-bar); font-weight: bold; border-left: 3px solid var(--dmoz-green)">
+                    Top: Dünya: Türkçe
+                </div>
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link active py-2 px-2 small fw-bold mb-1 rounded-0" href="#" style="background-color: var(--dmoz-bar-green); color: #000000; border: 1px solid var(--dmoz-green)">
+                        <i class="fa-solid fa-square-rss me-2" style="color: var(--dmoz-green)"></i> RSS Otomasyon Havuzu
                     </a>
                 </div>
             </div>
-            <div class="d-flex align-items-center p-2 rounded-3" style="background-color: var(--bg-dark-800)">
-                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
-                    <i class="fa-solid fa-user-gear"></i>
+            <div class="d-flex align-items-center p-2" style="background-color: var(--dmoz-gray-bar); border: 1px solid #dddddd;">
+                <div class="rounded-circle bg-white text-dark d-flex align-items-center justify-content-center border" style="width: 34px; height: 34px; border-color: var(--dmoz-green) !important;">
+                    <i class="fa-solid fa-user" style="color: var(--dmoz-green)"></i>
                 </div>
                 <div class="ms-2">
-                    <div class="text-white small fw-bold">Hamdi</div>
-                    <div style="color: var(--text-muted); font-size: 10px;"><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>Görünmez Mod</div>
+                    <div class="small fw-bold">Hamdi (Editör)</div>
+                    <div class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>Görünmez Mod</div>
                 </div>
             </div>
         </div>
 
+        <!-- Sağ Ana İçerik Alanı -->
         <div class="main-content">
-            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2">
-                <h2 class="fw-bold text-dark mb-0"><i class="fa-solid fa-sliders me-2"></i>Görünmez RSS Yönetimi</h2>
-                <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm px-3 fw-medium">
-                    <i class="fa-solid fa-power-off me-1"></i> Güvenli Çıkış
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom flex-wrap gap-2">
+                <h3 class="fw-bold mb-0" style="color: var(--dmoz-green)"><i class="fa-solid fa-folder-open me-2"></i>Görünmez RSS Yönetim Merkezi</h3>
+                <button onclick="handleLogout()" class="btn btn-sm px-3 fw-bold btn-dmoz-primary">
+                    <i class="fa-solid fa-power-off me-1" style="color: red"></i> Güvenli Çıkış
                 </button>
             </div>
 
+            <!-- Kayıt Formu -->
             <div class="card-custom">
-                <div class="card-custom-header bg-success">
-                    <i class="fa-solid fa-circle-plus"></i> Yeni Otomatik RSS Kaynağı Ekle
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-lg-6">
-                            <label class="form-label small fw-bold text-secondary"><i class="fa-solid fa-link me-1"></i> RSS URL Adresi</label>
-                            <input type="url" id="rssUrl" class="form-control" placeholder="https://site.com" required>
-                        </div>
-                        <div class="col-lg-3 col-md-6">
-                            <label class="form-label small fw-bold text-secondary"><i class="fa-solid fa-clock me-1"></i> Zamanlama Periyodu</label>
-                            <select id="intervalMinutes" class="form-select">
-                                <option value="5">5 Dakika</option>
-                                <option value="10">10 Dakika</option>
-                                <option value="20">20 Dakika</option>
-                                <option value="30">30 Dakika</option>
-                                <option value="60" selected>1 Saat</option>
-                                <option value="120">2 Saat</option>
-                                <option value="180">3 Saat</option>
-                            </select>
-                        </div>
-                        <div class="col-lg-3 col-md-6">
-                            <label class="form-label small fw-bold text-secondary"><i class="fa-solid fa-tags me-1"></i> Oto Kategori</label>
-                            <select id="autoCategory" class="form-select">
-                                <option value="true">Aktif (RSS'ten Çek)</option>
-                                <option value="false">Pasif</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-secondary"><i class="fa-solid fa-pen-to-square me-1"></i> Sabit Etiketler (Virgülle Ayırın)</label>
-                            <input type="text" id="customLabels" class="form-control" placeholder="haber, guncel, sondakika">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button onclick="addNewRss()" class="btn btn-success px-4 fw-bold w-100 w-sm-auto">
-                                <i class="fa-solid fa-cloud-arrow-up me-1"></i> Ayarları Şifreli Güncelle
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-custom">
-                <div class="card-custom-header bg-dark">
-                    <i class="fa-solid fa-list-check"></i> Aktif Havuz Listesi
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle mb-0" style="font-size: 14px; min-width: 800px;">

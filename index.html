@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogger RSS Otomasyon Paneli</title>
+    <!-- Stil ve Arayüz Kütüphaneleri -->
+    <script src="https://jsdelivr.net"></script>
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: sans-serif; }
+        .login-container { max-width: 400px; margin: 100px auto; }
+        .admin-container { max-width: 1000px; margin: 50px auto; display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- GİRİŞ EKRANI (Sayfa Kaynağında Kullanıcı Adı/Şifre Yazmaz) -->
+    <div id="loginSection" class="container login-container">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h4>Sistem Girişi</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Kullanıcı Adı</label>
+                    <input type="text" id="usernameInput" class="form-control" autocomplete="off">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Şifre</label>
+                    <input type="password" id="passwordInput" class="form-control">
+                </div>
+                <button onclick="handleLogin()" class="btn btn-primary w-100">Giriş Yap</button>
+                <div id="loginError" class="text-danger mt-2 text-center" style="display:none;">Hatalı Kullanıcı Adı veya Şifre!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMİN YÖNETİM PANELİ -->
+    <div id="adminSection" class="container admin-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Blogger RSS Yönetim Paneli</h2>
+            <button onclick="handleLogout()" class="btn btn-danger btn-sm">Güvenli Çıkış</button>
+        </div>
+
+        <!-- Yeni RSS Kaynağı Ekleme Formu -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">Yeni RSS Kaynağı Ekle</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">RSS URL Adresi</label>
+                        <input type="url" id="rssUrl" class="form-control" placeholder="https://site.com" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Zaman Ayarı</label>
+                        <select id="intervalMinutes" class="form-select">
+                            <option value="5">5 Dakika</option>
+                            <option value="10">10 Dakika</option>
+                            <option value="20">20 Dakika</option>
+                            <option value="30">30 Dakika</option>
+                            <option value="60" selected>1 Saat</option>
+                            <option value="120">2 Saat</option>
+                            <option value="180">3 Saat</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Otomatik Kategori</label>
+                        <select id="autoCategory" class="form-select">
+                            <option value="true">Aktif (RSS'ten Çek)</option>
+                            <option value="false">Pasif</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Elle Yazılacak Sabit Etiketler (Blogger Etiketleri - Virgülle Ayırın)</label>
+                        <input type="text" id="customLabels" class="form-control" placeholder="teknoloji, guncel, haber">
+                    </div>
+                    <div class="col-12">
+                        <button onclick="addNewRss()" class="btn btn-success">Sisteme Kaydet ve Otomasyona Al</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mevcut RSS Listesi Tablosu -->
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">Aktif RSS Otomasyon Listesi</div>
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>RSS URL</th>
+                            <th>Zamanlama</th>
+                            <th>Sabit Etiketler</th>
+                            <th>Oto Kategori</th>
+                            <th>Son Çalışma</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rssTableBody">
+                        <!-- Veriler Supabase'den dinamik yüklenecek -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GÜVENLİK AYARLARI ---
+        // Kendi Supabase panelinizdeki "Project Settings > API" kısmındaki bilgileri buraya yazın:
+        const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // GÜVENLİ GİRİŞ MANTIĞI (Şifre veritabanı fonksiyonunda doğrulanır)
+        async function handleLogin() {
+            const user = document.getElementById("usernameInput").value;
+            const pass = document.getElementById("passwordInput").value;
+            
+            // Supabase üzerindeki RPC fonksiyonunu tetikliyoruz
+            const { data: isValid, error } = await supabase.rpc('verify_admin_login', {
+                p_username: user,
+                p_password: pass
+            });
+
+            if (error) {
+                alert("Veritabanı bağlantı hatası!");
+                return;
+            }
+
+            if (isValid) {
+                // Giriş başarılı, oturumu tarayıcıda geçici hafızaya al
+                sessionStorage.setItem("admin_auth", "true");
+                showAdminPanel();
+            } else {
+                document.getElementById("loginError").style.display = "block";
+            }
+        }
+
+        function showAdminPanel() {
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("adminSection").style.display = "block";
+            loadRssSources();
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem("admin_auth");
+            window.location.reload();
+        }
+
+        // OTOMASYON YÖNETİM MANTIĞI (RSS İşlemleri)
+        async function loadRssSources() {
+            const { data, error } = await supabase.table("rss_sources").select("*").order("id", { ascending: false });
+            if (error) return;
+
+            const tbody = document.getElementById("rssTableBody");
+            tbody.innerHTML = "";
+
+            data.forEach(source => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td class="text-break">${source.rss_url}</td>
+                    <td><span class="badge bg-primary">${source.interval_minutes} Dakika</span></td>
+                    <td><small>${source.custom_labels || '-'}</small></td>
+                    <td>${source.auto_category_enable ? '✅' : '❌'}</td>
+                    <td><small>${source.last_run_at ? new Date(source.last_run_at).toLocaleString('tr-TR') : 'Bekliyor'}</small></td>
+                    <td><button onclick="deleteRss(${source.id})" class="btn btn-danger btn-sm">Sil</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function addNewRss() {
+            const url = document.getElementById("rssUrl").value;
+            const interval = parseInt(document.getElementById("intervalMinutes").value);
+            const labels = document.getElementById("customLabels").value;
+            const autoCat = document.getElementById("autoCategory").value === "true";
+
+            if (!url) { alert("Lütfen geçerli bir RSS linki girin!"); return; }
+
+            const { error } = await supabase.table("rss_sources").insert([
+                { rss_url: url, interval_minutes: interval, custom_labels: labels, auto_category_enable: autoCat }
+            ]);
+
+            if (error) {
+                alert("Hata: Bu RSS adresi zaten ekli veya veritabanı hatası oluştu.");
+            } else {
+                document.getElementById("rssUrl").value = "";
+                document.getElementById("customLabels").value = "";
+                loadRssSources();
+            }
+        }
+
+        async function deleteRss(id) {
+            if (!confirm("Bu RSS kaynağını otomasyondan kaldırmak istediğinize emin misiniz?")) return;
+            const { error } = await supabase.table("rss_sources").delete().eq("id", id);
+            if (!error) loadRssSources();
+        }
+
+        // Sayfa yüklendiğinde oturum kontrolü yap
+        if (sessionStorage.getItem("admin_auth") === "true") {
+            showAdminPanel();
+        }
+    </script>
+</body>
+</html>

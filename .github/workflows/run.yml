@@ -2,9 +2,8 @@ name: Blogger RSS Invisible Automator
 
 on:
   schedule:
-    # Her 5 dakikada bir tetiklenir, zamanı gelen RSS'leri ayıklar
     - cron: '*/5 * * * *'
-  workflow_dispatch: # İstediğiniz zaman elle çalıştırma butonu açar
+  workflow_dispatch:
 
 jobs:
   run-bot:
@@ -25,12 +24,12 @@ jobs:
         pip install requests feedparser beautifulsoup4
 
     - name: 🔐 Şifreli Haber Hafızasını Yükle (Restore Cache)
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: .posted_cache.json
-        key: blogger-news-cache-${{ github.run_id }}
+        key: blogger-news-permanent-cache
         restore-keys: |
-          blogger-news-cache-
+          blogger-news-permanent-cache
 
     - name: ⚙️ Otomasyonu Görünmez Modda Çalıştır
       env:
@@ -44,4 +43,4 @@ jobs:
       uses: actions/cache/save@v4
       with:
         path: .posted_cache.json
-        key: blogger-news-cache-${{ github.run_id }}
+        key: blogger-news-permanent-cache

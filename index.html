@@ -8,16 +8,8 @@
     <link href="https://jsdelivr.net" rel="stylesheet">
     <link href="https://cloudflare.com" rel="stylesheet">
     <style>
-        :root { 
-            --dmoz-green: #228b22; 
-            --dmoz-bar-green: #ccffcc; 
-            --dmoz-bg: #ffffff; 
-            --dmoz-gray-bar: #eeeeee; 
-            --dmoz-text: #000000;
-            --dmoz-link: #0000cc;
-        }
+        :root { --dmoz-green: #228b22; --dmoz-bar-green: #ccffcc; --dmoz-bg: #ffffff; --dmoz-gray-bar: #eeeeee; --dmoz-text: #000000; }
         body { font-family: 'Arial', sans-serif; background-color: var(--dmoz-bg); color: var(--dmoz-text); margin: 0; padding: 0; }
-        a { color: var(--dmoz-link); text-decoration: underline; }
         .login-wrapper { background-color: #f6f6f6; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.25rem; }
         .login-card { background-color: var(--dmoz-bg); border: 2px solid var(--dmoz-green); border-radius: 4px; width: 100%; max-width: 420px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .login-card .form-control { background-color: #ffffff; border: 1px solid #7f9db9; color: #000000; border-radius: 2px; }
@@ -29,13 +21,7 @@
         .mobile-header { display: none; background-color: var(--dmoz-gray-bar); border-bottom: 2px solid #dddddd; color: #000000; padding: 1rem; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 101; }
         .card-custom { background: #ffffff; border: 1px solid var(--dmoz-green); border-radius: 4px; margin-bottom: 2rem; overflow: hidden; }
         .card-custom-header { padding: 0.75rem 1.25rem; font-weight: bold; background-color: var(--dmoz-bar-green); color: #000000; border-bottom: 1px solid var(--dmoz-green); display: flex; align-items: center; gap: 0.5rem; font-size: 15px; }
-        .form-select, .form-control { border-radius: 2px; border: 1px solid #7f9db9; }
-        @media (max-width: 991.98px) {
-            .sidebar { transform: translateX(-100%); height: 100vh; background-color: #ffffff; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
-            .sidebar.active { transform: translateX(0); }
-            .main-content { margin-left: 0; width: 100%; padding: 1.25rem; }
-            .mobile-header { display: flex; }
-        }
+        @media (max-width: 991.98px) { .sidebar { transform: translateX(-100%); height: 100vh; background-color: #ffffff; } .sidebar.active { transform: translateX(0); } .main-content { margin-left: 0; width: 100%; padding: 1.25rem; } .mobile-header { display: flex; } }
     </style>
 </head>
 <body>
@@ -44,7 +30,7 @@
         <div class="login-card">
             <div class="text-center mb-4">
                 <div class="d-inline-block p-2 mb-2" style="background: var(--dmoz-bar-green); border: 1px solid var(--dmoz-green);"><i class="fa-solid fa-folder-open fa-2x" style="color: var(--dmoz-green)"></i></div>
-                <h4 class="fw-bold mb-1" style="color: var(--dmoz-green)">Hamdi Uludağ Blogger Rss</h4>
+                <h4 class="fw-bold mb-1" style="color: var(--dmoz-green)">dmoz otomasyon</h4>
                 <p class="text-muted small">Blogger RSS Yönetim Paneli</p>
             </div>
             <div class="mb-3">
@@ -56,7 +42,7 @@
                 <input type="password" id="passwordInput" class="form-control" placeholder="ghp_...">
             </div>
             <button onclick="handleLogin()" class="btn btn-dmoz-primary btn-lg w-100"><i class="fa-solid fa-right-to-bracket me-1"></i> Sisteme Giriş Yap</button>
-            <div id="loginError" class="text-danger mt-3 text-center small fw-bold" style="display:none;"><i class="fa-solid fa-triangle-exclamation me-1"></i> Doğrulama başarısız! Token kodunu kontrol edin.</div>
+            <div id="loginError" class="text-danger mt-3 text-center small fw-bold" style="display:none;"><i class="fa-solid fa-triangle-exclamation me-1"></i> Doğrulama başarısız! Token kodunu veya repo yazma izinlerini kontrol edin.</div>
         </div>
     </div>
 
@@ -81,14 +67,14 @@
                 <div class="rounded-circle bg-white text-dark d-flex align-items-center justify-content-center border" style="width: 34px; height: 34px; border-color: var(--dmoz-green) !important;"><i class="fa-solid fa-user" style="color: var(--dmoz-green)"></i></div>
                 <div class="ms-2">
                     <div class="small fw-bold">Hamdi (Editör)</div>
-                    <div class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>Görünmez Mod</div>
+                    <div class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>Canlı Mod</div>
                 </div>
             </div>
         </div>
 
         <div class="main-content">
             <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom flex-wrap gap-2">
-                <h3 class="fw-bold mb-0" style="color: var(--dmoz-green)"><i class="fa-solid fa-folder-open me-2"></i>Görünmez RSS Yönetim Merkezi</h3>
+                <h3 class="fw-bold mb-0" style="color: var(--dmoz-green)"><i class="fa-solid fa-folder-open me-2"></i>JSON Tabanlı RSS Yönetim Merkezi</h3>
                 <button onclick="handleLogout()" class="btn btn-sm px-3 fw-bold btn-dmoz-primary"><i class="fa-solid fa-power-off me-1" style="color: red"></i> Güvenli Çıkış</button>
             </div>
 
@@ -123,3 +109,7 @@
                             <label class="form-label small fw-bold"><i class="fa-solid fa-pencil me-1" style="color: var(--dmoz-green)"></i> Sabit Etiketler (Blogger İçin - Virgülle Ayırın)</label>
                             <input type="text" id="customLabels" class="form-control" placeholder="haber, guncel, sondakika">
                         </div>
+                        <div class="col-12 text-end">
+                            <button onclick="addNewRss()" class="btn btn-dmoz-primary px-4 fw-bold w-100 w-sm-auto"><i class="fa-solid fa-file-shield me-1" style="color: var(--dmoz-green)"></i> Ayarları Depoya Commit Et</button>
+                        </div>
+                    </div>
